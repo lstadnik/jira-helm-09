@@ -1,0 +1,29 @@
+{{- if and (eq "EKS" .Values.clusterType) .Values.backdoorServiceNames }}
+{{/* Change to networking.k8s.io/v1 when k8s 1.19 is the oldest supported version */}}
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name | quote }}
+  labels:
+    "app.kubernetes.io/managed-by": "Helm"
+    "meta.helm.sh/release-name": {{ .Release.Name | quote }}
+    "meta.helm.sh/release-namespace": {{ .Release.Namespace | quote }}
+  annotations:
+    "kubernetes.io/ingress.class": nginx
+    "nginx.ingress.kubernetes.io/affinity": cookie
+    "nginx.ingress.kubernetes.io/affinity-mode": persistent
+    "nginx.ingress.kubernetes.io/proxy-connect-timeout": "60"
+    "nginx.ingress.kubernetes.io/proxy-read-timeout": "60"
+    "nginx.ingress.kubernetes.io/proxy-send-timeout": "60"
+spec:
+  rules:
+    {{- range $serviceName := .Values.backdoorServiceNames }}
+    - host: {{ printf "%s.%s" $serviceName $.Values.ingressDomain }}
+      http:
+        paths:
+          - backend:
+              serviceName: {{ $serviceName }}
+              servicePort: 80
+            path: /
+    {{ end }}
+{{ end }}

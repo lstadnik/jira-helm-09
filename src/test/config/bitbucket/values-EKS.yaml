@@ -1,0 +1,39 @@
+# The created service account needs to have the credentials to pull from the Atlassian docker registry
+serviceAccount:
+  imagePullSecrets:
+    - name: regcred
+
+ingress:
+  create: true
+  host: ${helm.release.prefix}-bitbucket.${eks.ingress.domain}
+
+volumes:
+  localHome:
+    persistentVolumeClaim:
+      create: true
+  sharedHome:
+    persistentVolume:
+      create: true
+      nfs:
+        path: "/srv/nfs"
+    persistentVolumeClaim:
+      create: true
+      storageClassName: ""
+      volumeName: ${helm.release.prefix}-bitbucket-shared-home-pv
+    nfsPermissionFixer:
+      enabled: true
+
+affinity:
+  podAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: role
+              operator: In
+              values:
+                - ${helm.release.prefix}-bitbucket-nfs-server # needs to be the same value as NFS server deployment
+        topologyKey: topology.kubernetes.io/zone
+
+
+nodeSelector:
+  node_purpose: ci

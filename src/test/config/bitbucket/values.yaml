@@ -1,0 +1,24 @@
+# This file contains overrides for the Bitbucket Helm chart's values.yaml file
+
+database:
+  url: jdbc:postgresql://${helm.release.prefix}-bitbucket-pgsql:5432/bitbucket
+  driver: org.postgresql.Driver
+  credentials:
+    secretName: bitbucket-database-credentials
+
+bitbucket:
+  clustering:
+    enabled: true
+  license:
+    secretName: bitbucket-license
+  sysadminCredentials:
+    secretName: bitbucket-sysadmin-credentials
+  additionalJvmArgs:
+    - -Dfeature.getting.started.page=false
+    - -XX:ActiveProcessorCount=2
+  resources:
+    container:
+      requests:
+        memory: 3G
+
+

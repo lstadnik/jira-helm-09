@@ -1,0 +1,21 @@
+# This file contains overrides for the Confluence Helm chart's values.yaml file
+
+confluence:
+  clustering:
+    enabled: true
+  license:
+    secretName: confluence-license
+  additionalJvmArgs:
+    - -Datlassian.allow.insecure.url.parameter.login=true
+    - -XX:ActiveProcessorCount=2
+  accessLog:
+    enabled: true
+
+database:
+  type: postgresql
+  url: jdbc:postgresql://${helm.release.prefix}-confluence-pgsql:5432/confluence
+  credentials:
+    secretName: confluence-database-credentials
+
+synchrony:
+  enabled: true

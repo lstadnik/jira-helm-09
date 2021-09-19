@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>data-center-helm-charts</artifactId>
+    <groupId>com.atlassian.datacenter.k8s</groupId>
+    <version>0.1.0-SNAPSHOT</version>
+
+    <scm>
+        <connection>scm:git:git@github.com:atlassian-labs/data-center-helm-charts.git</connection>
+        <developerConnection>scm:git:git@github.com:atlassian-labs/data-center-helm-charts.git</developerConnection>
+        <url>scm:git:git@github.com:atlassian-labs/data-center-helm-charts.git</url>
+    </scm>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit5.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit5.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>${jackson.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vavr</groupId>
+            <artifactId>vavr</artifactId>
+            <version>${vavr.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vavr</groupId>
+            <artifactId>vavr-jackson</artifactId>
+            <version>${vavr.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-vavr</artifactId>
+            <version>0.4.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
+            <version>${kubernetes-client.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <junit5.version>5.7.1</junit5.version>
+        <assertj.version>3.19.0</assertj.version>
+        <vavr.version>0.10.3</vavr.version>
+        <jackson.version>2.12.1</jackson.version>
+        <kubernetes-client.version>5.0.1</kubernetes-client.version>
+        <slf4j.version>1.7.30</slf4j.version>
+        <commons-io.version>2.8.0</commons-io.version>
+
+        <dockerImage.registry />
+        <dockerImage.version />
+        <skip.dockerImage.pull>false</skip.dockerImage.pull>
+
+        <helm.src.path>${project.basedir}/src/main/charts</helm.src.path>
+
+        <helm.release.prefix>${user.name}</helm.release.prefix>
+
+        <log.download.dir>${project.build.directory}/logs</log.download.dir>
+
+        <kubernetes.target.namespace>dcng</kubernetes.target.namespace>
+
+        <kubernetes.ingress.domain>internal.shared-dev.us-west-2.kitt-inf.net</kubernetes.ingress.domain>
+        <aks.ingress.domain>aks.k8s.bbsperf.com</aks.ingress.domain>
+        <gke.ingress.domain>gke.k8s.bbsperf.com</gke.ingress.domain>
+        <kitt.ingress.domain>${kubernetes.ingress.domain}</kitt.ingress.domain>
+<!--        <eks.ingress.domain>eks.k8s.bbsperf.com</eks.ingress.domain>-->
+        <eks.ingress.domain>dcngkube.bbsperf.com</eks.ingress.domain>
+        <custom.ingress.uri />
+
+        <shared.pvc.name>atlassian-dc-shared-home-pvc</shared.pvc.name>
+
+        <persistence.enabled>true</persistence.enabled>
+
+        <db.init.script.file/>
+
+        <extra.parameters />
+
+        <helm.debug>true</helm.debug>
+
+        <!-- The directory in which the helm (un)install script should look for the chart values files for integration testing -->
+        <chart.testValues.basedir>${project.build.directory}/config</chart.testValues.basedir>
+    </properties>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.0.0-M5</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <testResources>
+            <testResource>
+                <!-- Apply filtering to the helm CI config, to substitute various properties -->
+                <directory>src/test/config</directory>
+                <filtering>true</filtering>
+                <targetPath>${project.build.directory}/config</targetPath>
+            </testResource>
+        </testResources>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>custom-docker-image</id>
+            <properties>
+                <dockerImage.registry>docker.atl-paas.net</dockerImage.registry>
+                <dockerImage.version>${user.name}</dockerImage.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>default-chart-values</id>
+            <!--
+            Activating this profile will cause the helm_install.sh script to *not* find the integration-test values.yaml
+            files, resulting in the Helm chart being installed with the default values.
+            -->
+            <properties>
+                <chart.testValues.basedir>dummy</chart.testValues.basedir>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>post-install-tests</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>test/postinstall/*.java</include>
+                            </includes>
+                            <systemPropertyVariables>
+                                <helmParametersFileLocation>${helmParametersFileLocation}</helmParametersFileLocation>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
